@@ -123,7 +123,7 @@ if page == "Página Inicial":
         st.write("**Disciplina:** Ciência de Dados (DCA-3501)")
         st.write("**Professor:** Dr. Luiz Affonso Guedes")
         st.write("**Instituição:** UFRN - Departamento de Engenharia de Computação e Automação")
-        st.write("**Período: 2025.1")
+        st.write("**Período**: 2025.1")
 
 elif page == "Visão Geral e Mapa":
     st.header("Mapa Interativo da Felicidade")

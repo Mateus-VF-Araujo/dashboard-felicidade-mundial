@@ -1,4 +1,4 @@
-# World Happiness Report Dashboard 🌍
+# World Happiness Report Dashboard 🌍😁
 
 🔗 **[Acesse o Dashboard Interativo Aqui!](URL_DO_SEU_DASHBOARD_NO_STREAMLIT_CLOUD)**
 

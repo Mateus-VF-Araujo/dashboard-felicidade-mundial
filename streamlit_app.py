@@ -81,7 +81,7 @@ df_detailed = load_detailed_data()
 paises_disponiveis = sorted(df_total['Country'].unique())
 
 # --- Barra Lateral (Sidebar) ---
-st.sidebar.image("https://images.unsplash.com/photo-1494883542223-95c553934335?q=80&w=2940&auto=format&fit=crop", use_column_width=True)
+st.sidebar.image("https://images.unsplash.com/photo-1494883542223-95c553934335?q=80&w=2940&auto=format&fit=crop", use_container_width=True)
 st.sidebar.title("Painel de Controle")
 
 page = st.sidebar.radio(

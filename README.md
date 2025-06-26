@@ -1,19 +1,22 @@
-# :earth_americas: GDP dashboard template
+# World Happiness Report Dashboard 🌍
 
-A simple Streamlit app showing the GDP of different countries in the world.
+🔗 **[Acesse o Dashboard Interativo Aqui!](URL_DO_SEU_DASHBOARD_NO_STREAMLIT_CLOUD)**
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://gdp-dashboard-template.streamlit.app/)
+## 📖 Visão Geral do Projeto
 
-### How to run it on your own machine
+Este projeto consiste em um dashboard interativo que permite explorar os dados do **World Happiness Report** de 2015 a 2019. A aplicação foi desenvolvida para visualizar as tendências da felicidade em escala global, comparar o desempenho entre países e analisar os fatores que mais contribuem para a pontuação de felicidade, como PIB per capita, suporte social e percepção de corrupção.
 
-1. Install the requirements
+## 📊 Fonte dos Dados
 
-   ```
-   $ pip install -r requirements.txt
-   ```
+Os dados utilizados neste projeto foram obtidos do **World Happiness Report**, disponibilizados pela Sustainable Development Solutions Network (SDSN) na plataforma Kaggle.
 
-2. Run the app
+* **Link para o Dataset:** [World Happiness Report no Kaggle](https://www.kaggle.com/datasets/unsdsn/world-happiness)
 
-   ```
-   $ streamlit run streamlit_app.py
-   ```
+## 🎓 Contexto Acadêmico
+
+Este projeto foi desenvolvido como requisito para a disciplina de **Ciência de Dados (DCA-3501)** do Departamento de Engenharia de Computação e Automação (DCA) da Universidade Federal do Rio Grande do Norte (UFRN) no período de 2025.1.
+
+* **Professor:** Dr. Luiz Affonso Guedes
+* **Alunos:**
+    * Maria Eduarda Silva da Costa
+    * Mateus Vinicius Figueredo de Araújo

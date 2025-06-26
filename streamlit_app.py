@@ -73,8 +73,8 @@ page = st.sidebar.radio(
     [
         "Página Inicial",
         "Visão Geral e Mapa",
-        "Rankings Anuais (Animado)",
-        "Análise por Continente (Animado)",
+        "Rankings Anuais",
+        "Análise por Continente",
         "Evolução por País",
         "Análise dos Fatores de Felicidade"
     ]

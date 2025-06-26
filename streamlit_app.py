@@ -190,40 +190,30 @@ elif page == "Evolução por País":
         st.warning("Por favor, selecione pelo menos um país.")
 
 # --- Seção: Análise por Continente ---
-elif page == "Análise por Continente":
+elif page == "Análise por Continente (Animado)":
     st.header("Média do Score de Felicidade por Continente")
+    # Mapeamento de países para continentes
+    continent_map = { 'Africa': ['Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Central African Republic', 'Chad', 'Comoros', 'Congo (Brazzaville)', 'Congo (Kinshasa)', 'Ivory Coast', 'Djibouti', 'Egypt', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana', 'Guinea', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger', 'Nigeria', 'Rwanda', 'Senegal', 'Sierra Leone', 'Somalia', 'Somaliland Region', 'Somaliland region', 'South Africa', 'South Sudan', 'Sudan', 'Swaziland', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'], 'Asia': ['Afghanistan', 'Armenia', 'Azerbaijan', 'Bahrain', 'Bangladesh', 'Bhutan', 'Cambodia', 'China', 'Hong Kong', 'Hong Kong S.A.R., China', 'India', 'Indonesia', 'Iran', 'Iraq', 'Israel', 'Japan', 'Jordan', 'Kazakhstan', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Lebanon', 'Malaysia', 'Mongolia', 'Myanmar', 'Nepal', 'Oman', 'Pakistan', 'Palestinian Territories', 'Philippines', 'Qatar', 'Saudi Arabia', 'Singapore', 'South Korea', 'Sri Lanka', 'Syria', 'Taiwan', 'Taiwan Province of China', 'Tajikistan', 'Thailand', 'Turkey', 'Turkmenistan', 'United Arab Emirates', 'Uzbekistan', 'Vietnam', 'Yemen'], 'Europe': ['Albania', 'Austria', 'Belarus', 'Belgium', 'Bosnia and Herzegovina', 'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia', 'Germany', 'Greece', 'Hungary', 'Iceland', 'Ireland', 'Italy', 'Kosovo', 'Latvia', 'Lithuania', 'Luxembourg', 'Macedonia', 'Malta', 'Moldova', 'Montenegro', 'Netherlands', 'North Cyprus', 'North Macedonia', 'Northern Cyprus', 'Norway', 'Poland', 'Portugal', 'Romania', 'Russia', 'Serbia', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'], 'Americas': ['Argentina', 'Belize', 'Bolivia', 'Brazil', 'Canada', 'Chile', 'Colombia', 'Costa Rica', 'Dominican Republic', 'Ecuador', 'El Salvador', 'Guatemala', 'Haiti', 'Honduras', 'Jamaica', 'Mexico', 'Nicaragua', 'Panama', 'Paraguay', 'Peru', 'Puerto Rico', 'Suriname', 'Trinidad & Tobago', 'Trinidad and Tobago', 'United States', 'Uruguay', 'Venezuela'], 'Oceania': ['Australia', 'New Zealand']}
     
-    # Mapeamento simplificado de países para continentes
-    # Em um projeto real, seria melhor usar uma biblioteca como pycountry_convert
-    continent_map = {
-        'Africa': ['Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Central African Republic', 'Chad', 'Comoros', 'Congo (Brazzaville)', 'Congo (Kinshasa)', 'Ivory Coast', 'Djibouti', 'Egypt', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana', 'Guinea', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger', 'Nigeria', 'Rwanda', 'Senegal', 'Sierra Leone', 'Somalia', 'Somaliland region', 'South Africa', 'South Sudan', 'Sudan', 'Swaziland', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'],
-        'Asia': ['Afghanistan', 'Bahrain', 'Bangladesh', 'Bhutan', 'Cambodia', 'China', 'Hong Kong', 'India', 'Indonesia', 'Iran', 'Iraq', 'Israel', 'Japan', 'Jordan', 'Kazakhstan', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Lebanon', 'Malaysia', 'Mongolia', 'Myanmar', 'Nepal', 'Oman', 'Pakistan', 'Palestinian Territories', 'Philippines', 'Qatar', 'Saudi Arabia', 'Singapore', 'South Korea', 'Sri Lanka', 'Syria', 'Taiwan', 'Tajikistan', 'Thailand', 'Turkey', 'Turkmenistan', 'United Arab Emirates', 'Uzbekistan', 'Vietnam', 'Yemen'],
-        'Europe': ['Albania', 'Armenia', 'Austria', 'Azerbaijan', 'Belarus', 'Belgium', 'Bosnia and Herzegovina', 'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia', 'Germany', 'Greece', 'Hungary', 'Iceland', 'Ireland', 'Italy', 'Kosovo', 'Latvia', 'Lithuania', 'Luxembourg', 'Macedonia', 'Malta', 'Moldova', 'Montenegro', 'Netherlands', 'North Cyprus', 'Norway', 'Poland', 'Portugal', 'Romania', 'Russia', 'Serbia', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'],
-        'North America': ['Belize', 'Canada', 'Costa Rica', 'Dominican Republic', 'El Salvador', 'Guatemala', 'Honduras', 'Jamaica', 'Mexico', 'Nicaragua', 'Panama', 'Puerto Rico', 'Trinidad & Tobago', 'United States'],
-        'South America': ['Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Ecuador', 'Paraguay', 'Peru', 'Suriname', 'Uruguay', 'Venezuela'],
-        'Oceania': ['Australia', 'New Zealand']
-    }
+    # Remapeando o continente 'North America' e 'South America' para 'Americas' para simplificar a visualização
+    country_to_continent = {country: continent for continent, countries in continent_map.items() for country in countries}
+    df_total['Continent'] = df_total['Country'].map(country_to_continent)
     
-    def get_continent(country):
-        for continent, countries in continent_map.items():
-            if country in countries:
-                return continent
-        return 'Other'
-
-    df_total['Continent'] = df_total['Country'].apply(get_continent)
+    # Agrupando os dados e calculando a média
     df_grouped = df_total.groupby(['Year', 'Continent'])['Score'].mean().reset_index()
 
+    # ALTERADO: Filtrando para manter apenas os continentes desejados
+    continentes_desejados = ['Oceania', 'Americas', 'Europe', 'Asia', 'Africa']
+    df_filtrado_continentes = df_grouped[df_grouped['Continent'].isin(continentes_desejados)]
+
     fig_continent = px.bar(
-        df_grouped.sort_values(['Year', 'Score']),
-        x='Score', y='Continent',
-        orientation='h', color='Score',
-        animation_frame='Year',
-        color_continuous_scale='Viridis',
+        df_filtrado_continentes.sort_values(['Year', 'Score']), x='Score', y='Continent',
+        orientation='h', color='Continent', animation_frame='Year',
         title='Média do Score de Felicidade por Continente',
         labels={'Score': 'Score Médio', 'Continent': 'Continente'},
-        text=df_grouped['Score'].round(2)
+        text=df_filtrado_continentes['Score'].round(2)
     )
-    fig_continent.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = 1500
+    fig_continent.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = 2000
     st.plotly_chart(fig_continent, use_container_width=True)
 
 # --- Seção: Fatores de Felicidade ---

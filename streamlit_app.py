@@ -3,59 +3,45 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-# --- Configuração da Página ---
+# --- 1. Configuração da Página ---
 st.set_page_config(
     page_title="Dashboard da Felicidade Mundial",
     page_icon="🌍",
     layout="wide",
-    initial_sidebar_state="expanded"
 )
 
-# --- Funções de Carregamento de Dados (com Cache) ---
-# O cache acelera o carregamento, salvando os dados na memória.
+# --- 2. Funções de Carregamento e Processamento de Dados (com Cache) ---
 @st.cache_data
-def load_data():
+def carregar_dados_consolidados():
     """
     Carrega e consolida os dados de felicidade de 2015 a 2019,
     padronizando as colunas essenciais.
     """
     anos = [2015, 2016, 2017, 2018, 2019]
     df_list = []
-
     for ano in anos:
         df = pd.read_csv(f"{ano}.csv", encoding='utf-8')
-        
-        # Renomeação flexível das colunas
         rename_map = {
             'Country or region': 'Country', 'Country name': 'Country',
             'Happiness Score': 'Score', 'Happiness.Score': 'Score', 'Life Ladder': 'Score',
             'Happiness Rank': 'Rank', 'Overall rank': 'Rank', 'Happiness.Rank': 'Rank'
         }
-        
-        # Filtra o dicionário para conter apenas as colunas presentes no df
         cols_to_rename = {k: v for k, v in rename_map.items() if k in df.columns}
         df = df.rename(columns=cols_to_rename)
-        
         df['Year'] = ano
-        
-        # Garante que as colunas essenciais existam
         if 'Rank' not in df.columns:
             df['Rank'] = df['Score'].rank(ascending=False).astype(int)
-
         df_list.append(df[['Country', 'Score', 'Rank', 'Year']])
-
     df_total = pd.concat(df_list, ignore_index=True)
     return df_total
 
 @st.cache_data
-def load_detailed_data():
+def carregar_dados_detalhados():
     """
-    Carrega e padroniza os dados detalhados (com fatores de felicidade)
-    para os gráficos de radar e dispersão.
+    Carrega e padroniza os dados detalhados com todos os fatores de felicidade.
     """
     anos = [2015, 2016, 2017, 2018, 2019]
     dfs = []
-    
     for ano in anos:
         df = pd.read_csv(f"{ano}.csv", encoding='utf-8')
         col_renomeadas = {
@@ -69,41 +55,39 @@ def load_detailed_data():
             'Generosity': 'Generosity'
         }
         df = df.rename(columns=col_renomeadas)
+        colunas_necessarias = ['Country', 'Score', 'GDP', 'Social support', 'Life expectancy', 'Freedom', 'Generosity', 'Corruption']
+        df = df[[col for col in colunas_necessarias if col in df.columns]]
         df['Year'] = ano
         dfs.append(df)
-        
-    df_completo = pd.concat(dfs, ignore_index=True)
+    df_completo = pd.concat(dfs, ignore_index=True).dropna()
     return df_completo
 
-# --- Carregamento Inicial dos Dados ---
-df_total = load_data()
-df_detailed = load_detailed_data()
+# Carrega os dados
+df_total = carregar_dados_consolidados()
+df_detailed = carregar_dados_detalhados()
 paises_disponiveis = sorted(df_total['Country'].unique())
 
-# --- Barra Lateral (Sidebar) ---
-st.sidebar.image("https://images.unsplash.com/photo-1494883542223-95c553934335?q=80&w=2940&auto=format&fit=crop", use_column_width=True)
-st.sidebar.title("Painel de Controle")
-
-page = st.sidebar.radio(
-    "Selecione a Análise:",
-    [
-        "Visão Geral (Mapa)", 
-        "Rankings Anuais (Animado)", 
-        "Evolução por País",
-        "Análise por Continente",
-        "Análise dos Fatores de Felicidade"
-    ]
-)
-
-st.sidebar.markdown("---")
-st.sidebar.info("Dashboard criado com base no World Happiness Report (2015-2019).")
-
-# --- Conteúdo Principal ---
+# --- 3. Layout do Dashboard ---
 st.title("🌍 Dashboard da Felicidade Mundial")
 st.markdown("Análise interativa dos dados do *World Happiness Report* de 2015 a 2019.")
 
-# --- Seção: Visão Geral (Mapa) ---
-if page == "Visão Geral (Mapa)":
+st.sidebar.title("Painel de Controle")
+page = st.sidebar.radio(
+    "Selecione a Análise:",
+    [
+        "Visão Geral e Mapa",
+        "Rankings Anuais (Animado)",
+        "Análise por Continente (Animado)",
+        "Evolução por País",
+        "Análise dos Fatores de Felicidade"
+    ]
+)
+st.sidebar.markdown("---")
+st.sidebar.info("Dashboard criado com base no World Happiness Report (2015-2019).")
+
+# --- 4. Conteúdo Principal ---
+
+if page == "Visão Geral e Mapa":
     st.header("Mapa Interativo da Felicidade")
     ano_selecionado = st.slider("Selecione o Ano:", min_value=2015, max_value=2019, value=2019, step=1)
     
@@ -115,59 +99,95 @@ if page == "Visão Geral (Mapa)":
         locationmode='country names',
         color='Score',
         hover_name='Country',
-        color_continuous_scale=px.colors.sequential.Inferno,
+        color_continuous_scale=px.colors.sequential.Plasma,
         title=f"Nível de Felicidade por País - {ano_selecionado}",
         labels={'Score': 'Pontuação de Felicidade'}
     )
-    fig.update_layout(
-        geo=dict(showframe=False, showcoastlines=False),
-        coloraxis_colorbar=dict(title="Pontuação")
-    )
+    fig.update_layout(coloraxis_colorbar=dict(title="Pontuação"))
     st.plotly_chart(fig, use_container_width=True)
+    
+    # ADICIONADO: Gráfico de Média Global
+    st.markdown("---")
+    st.header("Média Global da Felicidade (2015-2019)")
+    media_ano = df_total.groupby('Year')['Score'].mean().reset_index()
+    fig_media_global = px.line(
+        media_ano,
+        x='Year',
+        y='Score',
+        markers=True,
+        title='Evolução da Média Global da Pontuação de Felicidade',
+        labels={'Year': 'Ano', 'Score': 'Pontuação Média'}
+    )
+    fig_media_global.update_layout(xaxis=dict(tickmode='linear'))
+    st.plotly_chart(fig_media_global, use_container_width=True)
 
-# --- Seção: Rankings Anuais ---
 elif page == "Rankings Anuais (Animado)":
     st.header("Rankings dos Países Mais e Menos Felizes")
     
     col1, col2 = st.columns(2)
-
     with col1:
         st.subheader("Top 10 Países Mais Felizes")
+        df_top10 = df_total[df_total['Rank'] <= 10]
         fig_top10 = px.bar(
-            df_total[df_total['Rank'] <= 10],
+            df_top10,
             x='Score', y='Country', color='Country',
             animation_frame='Year', orientation='h',
             title='Top 10 Países Mais Felizes por Ano',
-            range_x=[df_total[df_total['Rank'] <= 10]['Score'].min() - 0.5, 8],
-            text='Score'
+            range_x=[df_top10['Score'].min() - 0.5, 8],
+            labels={'Score': 'Pontuação', 'Country': 'País'}
         )
-        fig_top10.update_traces(texttemplate='%{text:.2f}', textposition='outside')
         fig_top10.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = 1500
-        fig_top10.update_layout(yaxis={'categoryorder': 'total ascending'})
+        fig_top10.update_layout(yaxis={'categoryorder': 'total ascending'}, showlegend=False)
         st.plotly_chart(fig_top10, use_container_width=True)
 
     with col2:
         st.subheader("Top 10 Países Menos Felizes")
-        # Seleciona os 10 países com os menores scores para cada ano
         df_bottom10 = df_total.groupby('Year', group_keys=False).apply(lambda x: x.nsmallest(10, 'Score'))
-        
         fig_bottom10 = px.bar(
             df_bottom10,
             x='Score', y='Country', color='Country',
             animation_frame='Year', orientation='h',
             title='Top 10 Países Menos Felizes por Ano',
             range_x=[0, df_bottom10['Score'].max() + 0.5],
-            text='Score'
+            labels={'Score': 'Pontuação', 'Country': 'País'}
         )
-        fig_bottom10.update_traces(texttemplate='%{text:.2f}', textposition='outside')
         fig_bottom10.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = 1500
-        fig_bottom10.update_layout(yaxis={'categoryorder': 'total descending'})
+        fig_bottom10.update_layout(yaxis={'categoryorder': 'total descending'}, showlegend=False)
         st.plotly_chart(fig_bottom10, use_container_width=True)
 
-# --- Seção: Evolução por País ---
+elif page == "Análise por Continente (Animado)":
+    st.header("Média do Score de Felicidade por Continente")
+    
+    # ALTERADO: Mapeamento de continentes unificando as Américas
+    continent_map = {
+        'Africa': ['Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Central African Republic', 'Chad', 'Comoros', 'Congo (Brazzaville)', 'Congo (Kinshasa)', 'Ivory Coast', 'Djibouti', 'Egypt', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana', 'Guinea', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger', 'Nigeria', 'Rwanda', 'Senegal', 'Sierra Leone', 'Somalia', 'Somaliland region', 'South Africa', 'South Sudan', 'Sudan', 'Swaziland', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'],
+        'Asia': ['Afghanistan', 'Bahrain', 'Bangladesh', 'Bhutan', 'Cambodia', 'China', 'Hong Kong','Hong Kong S.A.R., China', 'India', 'Indonesia', 'Iran', 'Iraq', 'Israel', 'Japan', 'Jordan', 'Kazakhstan', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Lebanon', 'Malaysia', 'Mongolia', 'Myanmar', 'Nepal', 'Oman', 'Pakistan', 'Palestinian Territories', 'Philippines', 'Qatar', 'Saudi Arabia', 'Singapore', 'South Korea', 'Sri Lanka', 'Syria', 'Taiwan','Taiwan Province of China', 'Tajikistan', 'Thailand', 'Turkey', 'Turkmenistan', 'United Arab Emirates', 'Uzbekistan', 'Vietnam', 'Yemen'],
+        'Europe': ['Albania', 'Armenia', 'Austria', 'Azerbaijan', 'Belarus', 'Belgium', 'Bosnia and Herzegovina', 'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia', 'Germany', 'Greece', 'Hungary', 'Iceland', 'Ireland', 'Italy', 'Kosovo', 'Latvia', 'Lithuania', 'Luxembourg', 'Macedonia', 'Malta', 'Moldova', 'Montenegro', 'Netherlands', 'North Cyprus','Northern Cyprus', 'Norway', 'Poland', 'Portugal', 'Romania', 'Russia', 'Serbia', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'],
+        'Americas': ['Argentina', 'Belize', 'Bolivia', 'Brazil', 'Canada', 'Chile', 'Colombia', 'Costa Rica', 'Dominican Republic', 'Ecuador', 'El Salvador', 'Guatemala', 'Haiti', 'Honduras', 'Jamaica', 'Mexico', 'Nicaragua', 'Panama', 'Paraguay', 'Peru', 'Puerto Rico', 'Suriname', 'Trinidad & Tobago', 'Trinidad and Tobago', 'United States', 'Uruguay', 'Venezuela'],
+        'Oceania': ['Australia', 'New Zealand']
+    }
+    
+    country_to_continent = {country: continent for continent, countries in continent_map.items() for country in countries}
+    df_total['Continent'] = df_total['Country'].map(country_to_continent)
+    
+    # Remove países não mapeados para não criar a categoria "Outros"
+    df_continente_filtrado = df_total.dropna(subset=['Continent'])
+    df_grouped = df_continente_filtrado.groupby(['Year', 'Continent'])['Score'].mean().reset_index()
+
+    fig_continent = px.bar(
+        df_grouped.sort_values(['Year', 'Score']),
+        x='Score', y='Continent',
+        orientation='h', color='Continent',
+        animation_frame='Year',
+        title='Média do Score de Felicidade por Continente',
+        labels={'Score': 'Pontuação Média', 'Continent': 'Continente'},
+        text=df_grouped['Score'].round(2)
+    )
+    fig_continent.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = 1500
+    st.plotly_chart(fig_continent, use_container_width=True)
+
 elif page == "Evolução por País":
     st.header("Evolução da Felicidade por País")
-    
     paises_selecionados = st.multiselect(
         "Selecione os países:",
         options=paises_disponiveis,
@@ -176,68 +196,28 @@ elif page == "Evolução por País":
     
     if paises_selecionados:
         df_filtrado = df_total[df_total['Country'].isin(paises_selecionados)]
-        
         fig = px.line(
-            df_filtrado,
-            x='Year', y='Score', color='Country',
-            markers=True,
-            title='Evolução da Felicidade por País (2015–2019)',
-            labels={'Year': 'Ano', 'Score': 'Pontuação de Felicidade'}
+            df_filtrado, x='Year', y='Score', color='Country',
+            markers=True, title='Evolução da Felicidade por País (2015–2019)',
+            labels={'Year': 'Ano', 'Score': 'Pontuação de Felicidade', 'Country': 'País'}
         )
         fig.update_layout(xaxis=dict(tickmode='linear'))
         st.plotly_chart(fig, use_container_width=True)
     else:
         st.warning("Por favor, selecione pelo menos um país.")
 
-# --- Seção: Análise por Continente ---
-elif page == "Análise por Continente (Animado)":
-    st.header("Média do Score de Felicidade por Continente")
-    # Mapeamento de países para continentes
-    continent_map = { 'Africa': ['Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Central African Republic', 'Chad', 'Comoros', 'Congo (Brazzaville)', 'Congo (Kinshasa)', 'Ivory Coast', 'Djibouti', 'Egypt', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana', 'Guinea', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger', 'Nigeria', 'Rwanda', 'Senegal', 'Sierra Leone', 'Somalia', 'Somaliland Region', 'Somaliland region', 'South Africa', 'South Sudan', 'Sudan', 'Swaziland', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'], 'Asia': ['Afghanistan', 'Armenia', 'Azerbaijan', 'Bahrain', 'Bangladesh', 'Bhutan', 'Cambodia', 'China', 'Hong Kong', 'Hong Kong S.A.R., China', 'India', 'Indonesia', 'Iran', 'Iraq', 'Israel', 'Japan', 'Jordan', 'Kazakhstan', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Lebanon', 'Malaysia', 'Mongolia', 'Myanmar', 'Nepal', 'Oman', 'Pakistan', 'Palestinian Territories', 'Philippines', 'Qatar', 'Saudi Arabia', 'Singapore', 'South Korea', 'Sri Lanka', 'Syria', 'Taiwan', 'Taiwan Province of China', 'Tajikistan', 'Thailand', 'Turkey', 'Turkmenistan', 'United Arab Emirates', 'Uzbekistan', 'Vietnam', 'Yemen'], 'Europe': ['Albania', 'Austria', 'Belarus', 'Belgium', 'Bosnia and Herzegovina', 'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia', 'Germany', 'Greece', 'Hungary', 'Iceland', 'Ireland', 'Italy', 'Kosovo', 'Latvia', 'Lithuania', 'Luxembourg', 'Macedonia', 'Malta', 'Moldova', 'Montenegro', 'Netherlands', 'North Cyprus', 'North Macedonia', 'Northern Cyprus', 'Norway', 'Poland', 'Portugal', 'Romania', 'Russia', 'Serbia', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'], 'Americas': ['Argentina', 'Belize', 'Bolivia', 'Brazil', 'Canada', 'Chile', 'Colombia', 'Costa Rica', 'Dominican Republic', 'Ecuador', 'El Salvador', 'Guatemala', 'Haiti', 'Honduras', 'Jamaica', 'Mexico', 'Nicaragua', 'Panama', 'Paraguay', 'Peru', 'Puerto Rico', 'Suriname', 'Trinidad & Tobago', 'Trinidad and Tobago', 'United States', 'Uruguay', 'Venezuela'], 'Oceania': ['Australia', 'New Zealand']}
-    
-    # Remapeando o continente 'North America' e 'South America' para 'Americas' para simplificar a visualização
-    country_to_continent = {country: continent for continent, countries in continent_map.items() for country in countries}
-    df_total['Continent'] = df_total['Country'].map(country_to_continent)
-    
-    # Agrupando os dados e calculando a média
-    df_grouped = df_total.groupby(['Year', 'Continent'])['Score'].mean().reset_index()
-
-    # ALTERADO: Filtrando para manter apenas os continentes desejados
-    continentes_desejados = ['Oceania', 'Americas', 'Europe', 'Asia', 'Africa']
-    df_filtrado_continentes = df_grouped[df_grouped['Continent'].isin(continentes_desejados)]
-
-    fig_continent = px.bar(
-        df_filtrado_continentes.sort_values(['Year', 'Score']), x='Score', y='Continent',
-        orientation='h', color='Continent', animation_frame='Year',
-        title='Média do Score de Felicidade por Continente',
-        labels={'Score': 'Score Médio', 'Continent': 'Continente'},
-        text=df_filtrado_continentes['Score'].round(2)
-    )
-    fig_continent.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = 2000
-    st.plotly_chart(fig_continent, use_container_width=True)
-
-# --- Seção: Fatores de Felicidade ---
 elif page == "Análise dos Fatores de Felicidade":
-    st.header("Correlação entre Felicidade e Outros Fatores")
-
-    st.subheader("Felicidade vs. PIB per Capita")
+    st.header("Análise dos Fatores que Compõem a Felicidade")
     
-    # Filtro para colunas necessárias
-    cols_necessarias = ['Country', 'Year', 'Score', 'GDP', 'Freedom']
-    df_scatter = df_detailed.dropna(subset=cols_necessarias)
-    
-    ano_scatter = st.slider("Selecione o Ano para o Gráfico de Dispersão:", 2015, 2019, 2019)
-    df_scatter_ano = df_scatter[df_scatter['Year'] == ano_scatter]
+    st.subheader("Felicidade vs. PIB per Capita e Liberdade")
+    ano_scatter = st.slider("Selecione o Ano para o Gráfico de Dispersão:", 2015, 2019, 2019, key='slider_scatter')
+    df_scatter_ano = df_detailed[df_detailed['Year'] == ano_scatter]
 
     fig_scatter = px.scatter(
-        df_scatter_ano,
-        x='GDP', y='Score',
-        size='Score',
-        color='Freedom',
-        hover_name='Country',
-        size_max=20,
-        title=f'Felicidade vs. PIB per Capita ({ano_scatter})',
-        labels={'GDP': 'PIB per Capita', 'Score': 'Pontuação de Felicidade', 'Freedom': 'Liberdade'}
+        df_scatter_ano, x='GDP', y='Score',
+        size='Score', color='Freedom', hover_name='Country', size_max=20,
+        title=f'Felicidade vs. PIB e Liberdade ({ano_scatter})',
+        labels={'GDP': 'PIB per Capita', 'Score': 'Pontuação de Felicidade', 'Freedom': 'Nível de Liberdade'}
     )
     st.plotly_chart(fig_scatter, use_container_width=True)
     
@@ -247,34 +227,34 @@ elif page == "Análise dos Fatores de Felicidade":
     
     col1, col2 = st.columns(2)
     with col1:
-        ano_radar = st.slider("Selecione o Ano para o Radar:", 2015, 2019, 2019)
-        indicadores = ['GDP', 'Social support', 'Life expectancy', 'Freedom', 'Generosity', 'Corruption']
-        df_radar = df_detailed.dropna(subset=indicadores + ['Country', 'Year'])
-
+        ano_radar = st.slider("Selecione o Ano para o Radar:", 2015, 2019, 2019, key='slider_radar')
     with col2:
         paises_radar = st.multiselect(
             "Selecione os países para comparar no radar:",
-            options=paises_disponiveis,
-            default=['Brazil', 'Finland']
+            options=paises_disponiveis, default=['Brazil', 'Finland']
         )
     
     if paises_radar:
-        df_radar_filtrado = df_radar[(df_radar['Year'] == ano_radar) & (df_radar['Country'].isin(paises_radar))]
+        indicadores_map = {
+            'GDP': 'PIB', 'Social support': 'Suporte Social', 
+            'Life expectancy': 'Expectativa de Vida', 'Freedom': 'Liberdade',
+            'Generosity': 'Generosidade', 'Corruption': 'Percepção de Corrupção'
+        }
+        indicadores_originais = list(indicadores_map.keys())
+        indicadores_pt = list(indicadores_map.values())
         
+        df_radar_filtrado = df_detailed[(df_detailed['Year'] == ano_radar) & (df_detailed['Country'].isin(paises_radar))]
         fig_radar = go.Figure()
 
         for _, row in df_radar_filtrado.iterrows():
+            valores = [row.get(col, 0) for col in indicadores_originais]
             fig_radar.add_trace(go.Scatterpolar(
-                r=[row[ind] for ind in indicadores],
-                theta=indicadores,
-                fill='toself',
-                name=row['Country']
+                r=valores, theta=indicadores_pt, fill='toself', name=row['Country']
             ))
 
         fig_radar.update_layout(
-            polar=dict(radialaxis=dict(visible=True, range=[0, df_radar[indicadores].max().max()])),
-            showlegend=True,
-            title=f"Comparativo de Indicadores ({ano_radar})"
+            polar=dict(radialaxis=dict(visible=True, range=[0, df_detailed[indicadores_originais].max().max()])),
+            showlegend=True, title=f"Comparativo de Indicadores ({ano_radar})"
         )
         st.plotly_chart(fig_radar, use_container_width=True)
     else:

@@ -88,7 +88,7 @@ if page == "Página Inicial":
     st.title("Bem-vindo(a) ao Dashboard da Felicidade Mundial 🌍😁")
     st.markdown("---")
     
-    st.image("https://images.unsplash.com/photo-1579600161224-cac5a2971069?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mjd8fGhhcHBpbmVzc3xlbnwwfHwwfHx8MA%3D%3D", use_container_width=True)
+    st.image("https://cdn.pixabay.com/photo/2016/11/21/13/58/ball-1845546_640.jpg", use_container_width=True)
     
     st.subheader("Sobre este Projeto")
     st.markdown("""

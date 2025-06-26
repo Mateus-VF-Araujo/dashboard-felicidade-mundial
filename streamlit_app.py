@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # --- Configuração da Página ---
 st.set_page_config(
     page_title="Dashboard da Felicidade Mundial",
-    page_icon="🌍😁",
+    page_icon="🌍",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -103,29 +103,27 @@ st.title("🌍 Dashboard da Felicidade Mundial")
 st.markdown("Análise interativa dos dados do *World Happiness Report* de 2015 a 2019.")
 
 # --- Seção: Visão Geral (Mapa) ---
-if page == "Visão Geral e Mapa":
+if page == "Visão Geral (Mapa)":
     st.header("Mapa Interativo da Felicidade")
-    st.markdown("Selecione um ano para visualizar a distribuição da felicidade no mundo.")
-    ano_mapa = st.slider("Selecione o Ano:", 2015, 2019, 2019)
+    ano_selecionado = st.slider("Selecione o Ano:", min_value=2015, max_value=2019, value=2019, step=1)
     
-    df_mapa = df_total[df_total['Year'] == ano_mapa]
-    fig_mapa = px.choropleth(
-        df_mapa, locations='Country', locationmode='country names',
-        color='Score', hover_name='Country', color_continuous_scale=px.colors.sequential.Plasma,
-        title=f"Nível de Felicidade por País - {ano_mapa}", labels={'Score': 'Pontuação'}
-    )
-    st.plotly_chart(fig_mapa, use_container_width=True)
+    df_mapa = df_total[df_total['Year'] == ano_selecionado]
     
-    # ADICIONADO: Gráfico da Média Global
-    st.markdown("---")
-    st.header("Média Global da Felicidade (2015-2019)")
-    media_ano = df_total.groupby('Year')['Score'].mean().reset_index()
-    fig_media_global = px.line(
-        media_ano, x='Year', y='Score', markers=True,
-        title='Evolução da Média Global da Pontuação de Felicidade'
+    fig = px.choropleth(
+        df_mapa,
+        locations='Country',
+        locationmode='country names',
+        color='Score',
+        hover_name='Country',
+        color_continuous_scale=px.colors.sequential.Inferno,
+        title=f"Nível de Felicidade por País - {ano_selecionado}",
+        labels={'Score': 'Pontuação de Felicidade'}
     )
-    fig_media_global.update_layout(xaxis=dict(tickmode='linear'))
-    st.plotly_chart(fig_media_global, use_container_width=True)
+    fig.update_layout(
+        geo=dict(showframe=False, showcoastlines=False),
+        coloraxis_colorbar=dict(title="Pontuação")
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
 # --- Seção: Rankings Anuais ---
 elif page == "Rankings Anuais (Animado)":
@@ -201,9 +199,16 @@ elif page == "Análise por Continente":
         'Africa': ['Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Central African Republic', 'Chad', 'Comoros', 'Congo (Brazzaville)', 'Congo (Kinshasa)', 'Ivory Coast', 'Djibouti', 'Egypt', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana', 'Guinea', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger', 'Nigeria', 'Rwanda', 'Senegal', 'Sierra Leone', 'Somalia', 'Somaliland region', 'South Africa', 'South Sudan', 'Sudan', 'Swaziland', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'],
         'Asia': ['Afghanistan', 'Bahrain', 'Bangladesh', 'Bhutan', 'Cambodia', 'China', 'Hong Kong', 'India', 'Indonesia', 'Iran', 'Iraq', 'Israel', 'Japan', 'Jordan', 'Kazakhstan', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Lebanon', 'Malaysia', 'Mongolia', 'Myanmar', 'Nepal', 'Oman', 'Pakistan', 'Palestinian Territories', 'Philippines', 'Qatar', 'Saudi Arabia', 'Singapore', 'South Korea', 'Sri Lanka', 'Syria', 'Taiwan', 'Tajikistan', 'Thailand', 'Turkey', 'Turkmenistan', 'United Arab Emirates', 'Uzbekistan', 'Vietnam', 'Yemen'],
         'Europe': ['Albania', 'Armenia', 'Austria', 'Azerbaijan', 'Belarus', 'Belgium', 'Bosnia and Herzegovina', 'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia', 'Germany', 'Greece', 'Hungary', 'Iceland', 'Ireland', 'Italy', 'Kosovo', 'Latvia', 'Lithuania', 'Luxembourg', 'Macedonia', 'Malta', 'Moldova', 'Montenegro', 'Netherlands', 'North Cyprus', 'Norway', 'Poland', 'Portugal', 'Romania', 'Russia', 'Serbia', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'],
-        'Americas': ['Belize', 'Canada', 'Costa Rica', 'Dominican Republic', 'El Salvador', 'Guatemala', 'Honduras', 'Jamaica', 'Mexico', 'Nicaragua', 'Panama', 'Puerto Rico', 'Trinidad & Tobago', 'United States', 'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Ecuador', 'Paraguay', 'Peru', 'Suriname', 'Uruguay', 'Venezuela'],
+        'North America': ['Belize', 'Canada', 'Costa Rica', 'Dominican Republic', 'El Salvador', 'Guatemala', 'Honduras', 'Jamaica', 'Mexico', 'Nicaragua', 'Panama', 'Puerto Rico', 'Trinidad & Tobago', 'United States'],
+        'South America': ['Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Ecuador', 'Paraguay', 'Peru', 'Suriname', 'Uruguay', 'Venezuela'],
         'Oceania': ['Australia', 'New Zealand']
     }
+    
+    def get_continent(country):
+        for continent, countries in continent_map.items():
+            if country in countries:
+                return continent
+        return 'Other'
 
     df_total['Continent'] = df_total['Country'].apply(get_continent)
     df_grouped = df_total.groupby(['Year', 'Continent'])['Score'].mean().reset_index()

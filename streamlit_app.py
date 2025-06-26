@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide",
 )
 
-# --- 2. Funções de Carregamento de Dados (com Cache) ---
+# --- 2. Funções de Carregamento e Processamento de Dados (com Cache) ---
 @st.cache_data
 def carregar_dados_consolidados():
     """
@@ -67,9 +67,7 @@ df_detailed = carregar_dados_detalhados()
 paises_disponiveis = sorted(df_total['Country'].unique())
 
 # --- 3. Layout do Dashboard ---
-
 st.sidebar.title("Painel de Controle")
-# ALTERADO: Adicionada a "Página Inicial"
 page = st.sidebar.radio(
     "Selecione a Análise:",
     [
@@ -86,12 +84,11 @@ st.sidebar.info("Este dashboard foi criado com base no World Happiness Report (2
 
 # --- 4. Conteúdo Principal ---
 
-# ADICIONADO: Seção da Página Inicial
 if page == "Página Inicial":
-    st.title("Bem-vindo(a) ao Dashboard da Felicidade Mundial 🌍")
+    st.title("Bem-vindo(a) ao Dashboard da Felicidade Mundial 🌍😁")
     st.markdown("---")
     
-    st.image("https://images.unsplash.com/photo-1475013239243-4a1e94677708?q=80&w=2832&auto=format&fit=crop", use_column_width=True)
+    st.image("https://images.unsplash.com/photo-1475013239243-4a1e94677708?q=80&w=2832&auto=format&fit=crop", use_container_width=True)
     
     st.subheader("Sobre este Projeto")
     st.markdown("""
@@ -106,6 +103,13 @@ if page == "Página Inicial":
 
     st.subheader("Como Navegar")
     st.info("Use o menu na barra lateral à esquerda para navegar entre as diferentes seções de análise.")
+
+    st.subheader("Fonte dos Dados")
+    st.markdown("""
+    Os dados utilizados neste projeto foram obtidos do **World Happiness Report**, disponibilizados pela Sustainable Development Solutions Network (SDSN) na plataforma Kaggle.
+    
+    [🔗 Acesse o dataset original no Kaggle](https://www.kaggle.com/datasets/unsdsn/world-happiness)
+    """)
 
     st.markdown("---")
     

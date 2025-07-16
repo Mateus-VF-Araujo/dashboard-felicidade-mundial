@@ -1,6 +1,6 @@
 # World Happiness Report Dashboard 🌍😁
 
-🔗 **[Acesse o Dashboard Interativo Aqui!]([(https://dashboardfelicidademundial.streamlit.app/)])**
+🔗 **[Acesse o Dashboard Interativo Aqui!](https://dashboardfelicidademundial.streamlit.app/)**
 
 ## 📖 Visão Geral do Projeto
 

@@ -243,5 +243,3 @@ elif page == "Análise dos Fatores de Felicidade":
             showlegend=True, title=f"Comparativo de Indicadores ({ano_radar})"
         )
         st.plotly_chart(fig_radar, use_container_width=True)
-        
-    elif page == "Aprendizado de Máquina":

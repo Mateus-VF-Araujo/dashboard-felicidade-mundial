@@ -284,7 +284,7 @@ elif page == "Aprendizado de Máquina":
     model, model_columns = load_model_and_columns()
 
     # --- INTERFACE DO USUÁRIO ---
-    st.title("😊nPrevisor de Pontuação de Felicidade")
+    st.title("😊Previsor de Pontuação de Felicidade")
     st.markdown("Use os seletores abaixo para inserir os dados de um país e prever sua pontuação de felicidade com base em um modelo de Machine Learning.")
 
     if model and model_columns:
@@ -297,7 +297,6 @@ elif page == "Aprendizado de Máquina":
             freedom = st.sidebar.slider('Liberdade (Freedom)', 0.0, 1.0, 0.5, 0.01)
             generosity = st.sidebar.slider('Generosidade (Generosity)', 0.0, 1.0, 0.2, 0.01)
             corruption = st.sidebar.slider('Percepção de Corrupção (Corruption)', 0.0, 0.6, 0.15, 0.01)
-            year = st.sidebar.number_input('Ano (Year)', 2015, 2030, 2023)
             
             data = {
                 'GDP': gdp,
@@ -306,7 +305,6 @@ elif page == "Aprendizado de Máquina":
                 'Freedom': freedom,
                 'Generosity': generosity,
                 'Corruption': corruption,
-                'Year': year
             }
             
             # Cria o DataFrame com a ordem correta das colunas
@@ -331,4 +329,4 @@ elif page == "Aprendizado de Máquina":
             st.info("Esta previsão é baseada em um modelo ExtraTreesRegressor treinado com dados do World Happiness Report (2015-2019).")
 
     else:
-        st.warning("O modelo não pôde ser carregado. Verifique as URLs e a conexão com a internet.")
+        st.warning("O modelo não pôde ser carregado.")

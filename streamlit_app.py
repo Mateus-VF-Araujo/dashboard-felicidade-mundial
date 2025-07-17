@@ -248,7 +248,6 @@ elif page == "Análise dos Fatores de Felicidade":
         )
         st.plotly_chart(fig_radar, use_container_width=True)
         
-# --- PÁGINA DE APRENDIZADO DE MÁQUINA ---
 elif page == "Aprendizado de Máquina":
     
     @st.cache_resource
@@ -272,7 +271,7 @@ elif page == "Aprendizado de Máquina":
             return None, None
             
     def create_gauge_chart(value):
-        """Cria e retorna um gráfico de medidor (gauge) com Plotly."""
+        """Cria e retorna um gráfico de medidor."""
         fig = go.Figure(go.Indicator(
             mode = "gauge+number",
             value = value,
@@ -304,7 +303,7 @@ elif page == "Aprendizado de Máquina":
     # Carrega o modelo e as colunas
     model, model_columns = load_model_and_columns()
 
-    # --- INTERFACE DO USUÁRIO ---
+    # INTERFACE DO USUÁRIO
     st.title("😊 Previsor de Pontuação de Felicidade")
     st.markdown("Use os seletores abaixo para inserir os dados de um país e prever sua pontuação de felicidade com base em um modelo de Machine Learning.")
 
@@ -329,7 +328,7 @@ elif page == "Aprendizado de Máquina":
 
         input_df = user_input_features()
         st.subheader("Dados Inseridos:")
-        st.write(input_df)
+        st.write(input_df.style.hide(axis="index"))
 
         if st.button("Prever Pontuação de Felicidade"):
             prediction = model.predict(input_df)

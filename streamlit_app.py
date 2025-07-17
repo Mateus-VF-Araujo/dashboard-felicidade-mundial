@@ -328,7 +328,7 @@ elif page == "Aprendizado de Máquina":
 
         input_df = user_input_features()
         st.subheader("Dados Inseridos:")
-        st.write(input_df.style.hide(axis="index"))
+        st.write(input_df)
 
         if st.button("Prever Pontuação de Felicidade"):
             prediction = model.predict(input_df)

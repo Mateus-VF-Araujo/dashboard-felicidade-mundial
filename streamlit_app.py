@@ -276,7 +276,7 @@ elif page == "Aprendizado de Máquina":
         fig = go.Figure(go.Indicator(
             mode = "gauge+number",
             value = value,
-            title = {'text': "Score de Felicidade Previsto", 'font': {'size': 24}},
+            title = {'text': "Score de Felicidade", 'font': {'size': 24}, 'color': "white"},
             gauge = {
                 'axis': {'range': [2, 8], 'tickwidth': 1, 'tickcolor': "white"},
                 'bar': {'color': "black", 'thickness': 0.2},
@@ -297,7 +297,7 @@ elif page == "Aprendizado de Máquina":
         
         fig.update_layout(
             paper_bgcolor = "rgba(0,0,0,0)",
-            font = {'color': "darkblue", 'family': "Arial"}
+            font = {'color': "white", 'family': "Arial"}
         )
         return fig
 

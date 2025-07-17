@@ -278,18 +278,18 @@ elif page == "Aprendizado de Máquina":
             value = value,
             title = {'text': "Score de Felicidade Previsto", 'font': {'size': 24}},
             gauge = {
-                'axis': {'range': [2, 8], 'tickwidth': 1, 'tickcolor': "darkblue"},
+                'axis': {'range': [2, 8], 'tickwidth': 1, 'tickcolor': "white"},
                 'bar': {'color': "black", 'thickness': 0.2},
                 'bgcolor': "white",
-                'borderwidth': 2,
-                'bordercolor': "gray",
+                'borderwidth': 4,
+                'bordercolor': "black",
                 'steps': [
-                    {'range': [2, 4], 'color': '#FF7C7C'}, # Vermelho
-                    {'range': [4, 6], 'color': '#FDFF7C'}, # Amarelo
-                    {'range': [6, 8], 'color': '#7CFF7C'}  # Verde
+                    {'range': [2, 4], 'color': '#970700'}, # Vermelho
+                    {'range': [4, 6], 'color': '#FFC222'}, # Amarelo
+                    {'range': [6, 8], 'color': '#006400'}  # Verde
                 ],
                 'threshold': {
-                    'line': {'color': "red", 'width': 4},
+                    'line': {'color': "white", 'width': 4},
                     'thickness': 0.75,
                     'value': value
                 }
@@ -318,11 +318,10 @@ elif page == "Aprendizado de Máquina":
             freedom = st.sidebar.slider('Liberdade (Freedom)', 0.0, 1.0, 0.5, 0.01)
             generosity = st.sidebar.slider('Generosidade (Generosity)', 0.0, 1.0, 0.2, 0.01)
             corruption = st.sidebar.slider('Percepção de Corrupção (Corruption)', 0.0, 0.6, 0.15, 0.01)
-            year = st.sidebar.number_input('Ano (Year)', 2015, 2030, 2023)
             
             data = {
                 'GDP': gdp, 'Social support': social_support, 'Life expectancy': life_expectancy,
-                'Freedom': freedom, 'Generosity': generosity, 'Corruption': corruption, 'Year': year
+                'Freedom': freedom, 'Generosity': generosity, 'Corruption': corruption
             }
             
             features = pd.DataFrame(data, index=[0])
@@ -338,11 +337,10 @@ elif page == "Aprendizado de Máquina":
             
             st.subheader("Resultado da Previsão:")
             
-            # --- Exibe o novo gráfico de medidor ---
             fig = create_gauge_chart(score)
             st.plotly_chart(fig, use_container_width=True)
             
-            st.info("Esta previsão é baseada em um modelo ExtraTreesRegressor treinado com dados do World Happiness Report (2015-2019).")
+            st.info("Esta previsão é baseada no modelo ExtraTreesRegressor treinado com dados do World Happiness Report (2015-2019).")
 
     else:
         st.warning("O modelo não pôde ser carregado.")

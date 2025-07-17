@@ -250,41 +250,62 @@ elif page == "Análise dos Fatores de Felicidade":
         
 # --- PÁGINA DE APRENDIZADO DE MÁQUINA ---
 elif page == "Aprendizado de Máquina":
-
+    
     @st.cache_resource
     def load_model_and_columns():
-        """
-        Carrega o modelo e a lista de colunas a partir de URLs raw do GitHub.
-        """
         model_url = "https://github.com/Mateus-VF-Araujo/dashboard-felicidade-mundial/raw/main/extra_trees_model.joblib"
         columns_url = "https://github.com/Mateus-VF-Araujo/dashboard-felicidade-mundial/raw/main/model_columns.json"
         
         try:
-            # Baixar o arquivo do modelo
             response_model = requests.get(model_url)
-            response_model.raise_for_status()  # Lança um erro se a requisição falhar
+            response_model.raise_for_status()
             model_file = BytesIO(response_model.content)
             model = joblib.load(model_file)
             
-            # Baixar o arquivo das colunas
             response_columns = requests.get(columns_url)
             response_columns.raise_for_status()
             model_columns = json.loads(response_columns.text)
             
             return model, model_columns
-        except requests.exceptions.RequestException as e:
-            st.error(f"Erro ao baixar os arquivos do GitHub: {e}")
-            st.error("Verifique as URLs e se o repositório é público.")
-            return None, None
         except Exception as e:
-            st.error(f"Ocorreu um erro ao carregar o modelo: {e}")
+            st.error(f"Ocorreu um erro ao carregar os arquivos do modelo: {e}")
             return None, None
+            
+    def create_gauge_chart(value):
+        """Cria e retorna um gráfico de medidor (gauge) com Plotly."""
+        fig = go.Figure(go.Indicator(
+            mode = "gauge+number",
+            value = value,
+            title = {'text': "Score de Felicidade Previsto", 'font': {'size': 24}},
+            gauge = {
+                'axis': {'range': [2, 8], 'tickwidth': 1, 'tickcolor': "darkblue"},
+                'bar': {'color': "black", 'thickness': 0.2},
+                'bgcolor': "white",
+                'borderwidth': 2,
+                'bordercolor': "gray",
+                'steps': [
+                    {'range': [2, 4], 'color': '#FF7C7C'}, # Vermelho
+                    {'range': [4, 6], 'color': '#FDFF7C'}, # Amarelo
+                    {'range': [6, 8], 'color': '#7CFF7C'}  # Verde
+                ],
+                'threshold': {
+                    'line': {'color': "red", 'width': 4},
+                    'thickness': 0.75,
+                    'value': value
+                }
+            }))
+        
+        fig.update_layout(
+            paper_bgcolor = "rgba(0,0,0,0)",
+            font = {'color': "darkblue", 'family': "Arial"}
+        )
+        return fig
 
     # Carrega o modelo e as colunas
     model, model_columns = load_model_and_columns()
 
     # --- INTERFACE DO USUÁRIO ---
-    st.title("😊Previsor de Pontuação de Felicidade")
+    st.title("😊 Previsor de Pontuação de Felicidade")
     st.markdown("Use os seletores abaixo para inserir os dados de um país e prever sua pontuação de felicidade com base em um modelo de Machine Learning.")
 
     if model and model_columns:
@@ -297,36 +318,32 @@ elif page == "Aprendizado de Máquina":
             freedom = st.sidebar.slider('Liberdade (Freedom)', 0.0, 1.0, 0.5, 0.01)
             generosity = st.sidebar.slider('Generosidade (Generosity)', 0.0, 1.0, 0.2, 0.01)
             corruption = st.sidebar.slider('Percepção de Corrupção (Corruption)', 0.0, 0.6, 0.15, 0.01)
+            year = st.sidebar.number_input('Ano (Year)', 2015, 2030, 2023)
             
             data = {
-                'GDP': gdp,
-                'Social support': social_support,
-                'Life expectancy': life_expectancy,
-                'Freedom': freedom,
-                'Generosity': generosity,
-                'Corruption': corruption,
+                'GDP': gdp, 'Social support': social_support, 'Life expectancy': life_expectancy,
+                'Freedom': freedom, 'Generosity': generosity, 'Corruption': corruption, 'Year': year
             }
             
-            # Cria o DataFrame com a ordem correta das colunas
             features = pd.DataFrame(data, index=[0])
-            return features[model_columns] # Garante a ordem correta
+            return features[model_columns]
 
         input_df = user_input_features()
-
-        # Exibe os dados de entrada
         st.subheader("Dados Inseridos:")
         st.write(input_df)
 
-        # Botão para fazer a previsão
         if st.button("Prever Pontuação de Felicidade"):
             prediction = model.predict(input_df)
+            score = prediction[0]
             
             st.subheader("Resultado da Previsão:")
-            st.metric(label="Score de Felicidade Previsto", value=f"{prediction[0]:.2f}")
             
-            # Adiciona um medidor para visualização
-            st.progress(prediction[0] / 10.0) # Assumindo que o score máximo é 10
+            # --- Exibe o novo gráfico de medidor ---
+            fig = create_gauge_chart(score)
+            st.plotly_chart(fig, use_container_width=True)
+            
             st.info("Esta previsão é baseada em um modelo ExtraTreesRegressor treinado com dados do World Happiness Report (2015-2019).")
 
     else:
         st.warning("O modelo não pôde ser carregado.")
+
